@@ -21,7 +21,7 @@ A mobile app built with React Native and Expo.
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/<your-username>/Questify.git
+git clone https://github.com/gauresh-7/Questify.git
    cd Questify
    ```
 
