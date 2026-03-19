@@ -89,13 +89,13 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: '100%',
         height: 0.5, // Thinner lines
-        backgroundColor: 'rgba(255, 255, 255, 0.71)',
+        backgroundColor: 'rgba(255, 255, 255, 0.4)',
     },
     gridLineV: {
         position: 'absolute',
         height: '100%',
         width: 0.5, // Thinner lines
-        backgroundColor: 'rgba(255, 255, 255, 0.71)',
+        backgroundColor: 'rgba(255, 255, 255, 0.4)',
     },
     // --- Neon Glow Effect ---
     glowSource: {

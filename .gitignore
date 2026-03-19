@@ -36,6 +36,12 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# large audio/video assets
+*.wav
+*.mp3
+*.mp4
+*.mov
+
 app-example
 
 # generated native folders
