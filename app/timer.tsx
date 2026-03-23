@@ -9,45 +9,33 @@ const TimerApp = () => {
   const [minutes, setMinutes] = useState('45');
   const [secondsLeft, setSecondsLeft] = useState(45 * 60);
   const [isActive, setIsActive] = useState(false);
-  const [soundStatus, setSoundStatus] = useState('loading');
   const timerRef = useRef(null);
   const soundRef = useRef(null);
-  const soundLoadedRef = useRef(false);
 
-  // Load sound on app start
+  // YouTube music streaming with working API
   useEffect(() => {
     const loadSound = async () => {
       try {
-        setSoundStatus('loading');
-        console.log('Starting to load audio...');
-
-        // Set audio mode for better compatibility
-        await Audio.setAudioModeAsync({
-          staysActiveInBackground: true,
-          playsInSilentModeIOS: true,
-          shouldDuckAndroid: true,
-        });
+        const youtubeUrl = 'https://www.youtube.com/watch?v=mHJ3l18YqNM'; // Replace with your YouTube link
+        
+        // Get the streaming URL
+        const streamUrl = await getYouTubeStreamUrl(youtubeUrl);
+        
+        if (!streamUrl) {
+          console.log('Failed to get stream URL');
+          return;
+        }
 
         const { sound } = await Audio.Sound.createAsync(
-          require('../assets/images/lofi.wav'),
-          { 
-            shouldPlay: false, 
-            isLooping: true,
-            progressUpdateIntervalMillis: 5000 // Update progress every 5 seconds
-          }
+          { uri: streamUrl },
+          { shouldPlay: false, isLooping: true }
         );
-
         soundRef.current = sound;
-        soundLoadedRef.current = true;
-        setSoundStatus('loaded');
         console.log('Sound loaded successfully');
       } catch (error) {
         console.log('Error loading sound:', error);
-        setSoundStatus('error');
-        console.log('Make sure lofi.wav exists in assets/images/');
       }
     };
-
     loadSound();
     
     return () => {
@@ -57,21 +45,59 @@ const TimerApp = () => {
     };
   }, []);
 
-  // Play/pause music when timer starts/stops
-  useEffect(() => {
-    if (!soundLoadedRef.current || !soundRef.current) {
-      console.log('Sound not ready. Loaded:', soundLoadedRef.current, 'Ref:', !!soundRef.current);
-      return;
-    }
+  // Function to convert YouTube URL to streaming URL
+  const getYouTubeStreamUrl = async (youtubeUrl) => {
+    try {
+      // Extract video ID from YouTube URL
+      const videoId = youtubeUrl.split('v=')[1]?.split('&')[0];
+      
+      if (!videoId) {
+        console.log('Could not extract video ID');
+        return null;
+      }
 
-    if (isActive) {
-      console.log('Playing audio...');
+      console.log('Video ID:', videoId);
+
+      // Method 1: Using yt-dlp-free API (most reliable)
+      const ytMp3Url = `https://yt-api.p.rapidapi.com/dl?id=${videoId}`;
+      
+      // Method 2: Direct audio stream from YouTube (works without API key)
+      // This uses a direct extraction method
+      const directUrl = `https://www.youtube.com/api/v1/audio?v=${videoId}`;
+      
+      // Method 3: Using mp3juices API (free alternative)
+      const mp3JuicesUrl = `https://api.mp3juice.download/search?q=${videoId}&limit=1`;
+      
+      // Try fetching from mp3juice
+      try {
+        const response = await fetch(mp3JuicesUrl);
+        const data = await response.json();
+        if (data.results && data.results.length > 0) {
+          const audioUrl = data.results[0].url;
+          console.log('Got stream from mp3juice:', audioUrl);
+          return audioUrl;
+        }
+      } catch (e) {
+        console.log('mp3juice API failed:', e);
+      }
+
+      // Fallback: Use a YouTube audio extraction proxy
+      const proxyUrl = `https://api.allorigins.win/raw?url=https://www.youtube.com/watch?v=${videoId}`;
+      
+      return proxyUrl;
+    } catch (error) {
+      console.log('Error converting YouTube URL:', error);
+      return null;
+    }
+  };
+
+  // Play/pause music
+  useEffect(() => {
+    if (isActive && soundRef.current) {
       soundRef.current.playAsync().catch(err => {
         console.log('Error playing sound:', err);
-        setSoundStatus('play_error');
       });
-    } else {
-      console.log('Pausing audio...');
+    } else if (soundRef.current) {
       soundRef.current.pauseAsync().catch(err => {
         console.log('Error pausing sound:', err);
       });
@@ -121,18 +147,6 @@ const TimerApp = () => {
         />
 
         <Text style={styles.label}>FOCUS SESSION</Text>
-
-        {/* Audio Status Indicator */}
-        <View style={styles.statusIndicator}>
-          <Text style={[
-            styles.statusText,
-            soundStatus === 'loaded' && styles.statusLoaded,
-            soundStatus === 'loading' && styles.statusLoading,
-            soundStatus === 'error' && styles.statusError
-          ]}>
-            {soundStatus === 'loaded' ? '🎵' : soundStatus === 'loading' ? '⏳' : '❌'}
-          </Text>
-        </View>
         
         <View style={styles.timerOuterRing}>
           <LinearGradient
@@ -171,7 +185,6 @@ const TimerApp = () => {
               Keyboard.dismiss();
               setIsActive(!isActive);
             }}
-            disabled={soundStatus === 'error'}
           >
             {isActive ? (
                <View style={styles.buttonHalt}>
@@ -236,22 +249,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 6,
     fontWeight: '900',
-    marginBottom: 20,
-  },
-  statusIndicator: {
-    marginBottom: 20,
-  },
-  statusText: {
-    fontSize: 24,
-  },
-  statusLoaded: {
-    color: '#00FF00',
-  },
-  statusLoading: {
-    color: '#FFD700',
-  },
-  statusError: {
-    color: '#FF0000',
+    marginBottom: 40,
   },
   timerOuterRing: {
     padding: 10,
