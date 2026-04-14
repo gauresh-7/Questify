@@ -2,27 +2,29 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, Dimensions, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from "expo-router";
+// 1. Import the transition hook
+import { useTransition } from "./_layout"; 
 
 const { width, height } = Dimensions.get('window');
 
 const UserDetails = () => {
     const router = useRouter();
+    // 2. Destructure the custom transition function
+    const { navigateWithTransition } = useTransition();
 
     return (
         <View style={styles.container}>
-            {/* --- 1. Micro-Grid Background (Dense & Subtle) --- */}
-            <View style={styles.gridContainer}>
-                {/* Horizontal Lines (Spacing reduced to 25 for density) */}
-                {[...Array(Math.floor(height / 25))].map((_, i) => (
-                    <View key={`h-${i}`} style={[styles.gridLineH, { top: i * 25 }]} />
+            {/* --- 1. Tactical Micro-Grid --- */}
+            <View style={styles.gridContainer} pointerEvents="none">
+                {[...Array(Math.floor(height / 40))].map((_, i) => (
+                    <View key={`h-${i}`} style={[styles.gridLineH, { top: i * 40 }]} />
                 ))}
-                {/* Vertical Lines */}
-                {[...Array(Math.floor(width / 25))].map((_, i) => (
-                    <View key={`v-${i}`} style={[styles.gridLineV, { left: i * 25 }]} />
+                {[...Array(Math.floor(width / 40))].map((_, i) => (
+                    <View key={`v-${i}`} style={[styles.gridLineV, { left: i * 40 }]} />
                 ))}
             </View>
 
-            {/* --- 2. Enhanced Radiant Glow (Bottom Left) --- */}
+            {/* --- 2. Enhanced Radiant Glow --- */}
             <View style={styles.glowSource} />
 
             <View style={styles.headerContainer}>
@@ -57,11 +59,12 @@ const UserDetails = () => {
                     <Image style={styles.navIcon} source={require('../assets/images/settings.png')} />
                 </Pressable>
                 
-                <Pressable onPress={() => router.replace("/")}>
+                {/* 3. Use "zoom" for going back home (cinematic feel) */}
+                <Pressable onPress={() => navigateWithTransition("/", "zoom")}>
                     <Image style={styles.navIcon} source={require('../assets/images/Home.png')} />
                 </Pressable>
                 
-                <Pressable onPress={() => router.push("/userdetails")}>
+                <Pressable onPress={() => {}}>
                     <Image style={[styles.navIcon, { tintColor: '#FF6500' }]} source={require('../assets/images/userIcon.png')} />
                 </Pressable>
             </View>
@@ -72,32 +75,30 @@ const UserDetails = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#070708', // Near-black for maximum contrast
+        backgroundColor: '#070708', 
         alignItems: 'center',
         paddingTop: 80,
     },
-    // --- Micro-Grid ---
     gridContainer: {
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        opacity: 0.08, // Lowered opacity for that "barely there" look
+        opacity: 0.05, 
     },
     gridLineH: {
         position: 'absolute',
         width: '100%',
-        height: 0.5, // Thinner lines
+        height: 0.5, 
         backgroundColor: 'rgba(255, 255, 255, 0.4)',
     },
     gridLineV: {
         position: 'absolute',
         height: '100%',
-        width: 0.5, // Thinner lines
+        width: 0.5, 
         backgroundColor: 'rgba(255, 255, 255, 0.4)',
     },
-    // --- Neon Glow Effect ---
     glowSource: {
         position: 'absolute',
         bottom: 120,
@@ -105,17 +106,15 @@ const styles = StyleSheet.create({
         width: 250,
         height: 250,
         borderRadius: 125,
-        backgroundColor: 'rgba(255, 101, 0, 0.25)', // Higher opacity center
-        // Neon Bloom Effect
+        backgroundColor: 'rgba(255, 101, 0, 0.15)', 
         ...Platform.select({
             ios: {
                 shadowColor: '#FF6500',
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 1,
-                shadowRadius: 80,
+                shadowOpacity: 0.8,
+                shadowRadius: 100,
             },
             android: {
-                elevation: 30, // Android elevation mimics some glow
+                elevation: 30, 
             }
         }),
     },
@@ -129,7 +128,6 @@ const styles = StyleSheet.create({
         color: '#FF6500', 
         fontWeight: '900',
         letterSpacing: -1,
-        // Text glow
         textShadowColor: 'rgba(255, 101, 0, 0.6)',
         textShadowOffset: { width: 0, height: 0 },
         textShadowRadius: 15,
