@@ -1,6 +1,7 @@
 import { Stack, useRouter } from "expo-router";
 import { View, StyleSheet, Dimensions, Animated, Easing } from "react-native";
 import { createContext, useContext, useRef, useState } from "react";
+import { useGameStore } from "../store";
 
 const { width, height } = Dimensions.get("window");
 
@@ -21,6 +22,9 @@ export default function RootLayout() {
   const shutterTop = useRef(new Animated.Value(-height / 2)).current;
   const shutterBottom = useRef(new Animated.Value(height)).current;
   const fadeZoom = useRef(new Animated.Value(0)).current;
+
+  const { theme } = useGameStore();
+  const isLight = theme === 'light';
 
   const [activeMode, setActiveMode] = useState<"wipe" | "shutter" | "zoom" | null>(null); // 'wipe', 'shutter', 'zoom'
 
@@ -72,25 +76,25 @@ export default function RootLayout() {
 
   return (
     <TransitionContext.Provider value={{ navigateWithTransition }}>
-      <View style={{ flex: 1, backgroundColor: '#050506' }}>
+      <View style={{ flex: 1, backgroundColor: isLight ? '#FFFFFF' : '#050506' }}>
         <Stack screenOptions={{ headerShown: false, animation: 'none' }} />
         
         {/* 1. Tactical Wipe (Teal) */}
         {activeMode === 'wipe' && (
-          <Animated.View style={[styles.wipeOverlay, { transform: [{ translateX: slideAnim }, { skewX: '-10deg' }] }]} />
+          <Animated.View style={[styles.wipeOverlay, { transform: [{ translateX: slideAnim }, { skewX: '-10deg' }], backgroundColor: isLight ? '#F5F5F5' : '#000000' }]} />
         )}
 
-        {/* 2. Shutter (Orange) */}
+        {/* 2. Shutter (Orange/Purple) */}
         {activeMode === 'shutter' && (
           <>
-            <Animated.View style={[styles.shutterBar, { top: 0, transform: [{ translateY: shutterTop }], backgroundColor: '#FF6500' }]} />
-            <Animated.View style={[styles.shutterBar, { top: 0, transform: [{ translateY: shutterBottom }], backgroundColor: '#FF6500' }]} />
+            <Animated.View style={[styles.shutterBar, { top: 0, transform: [{ translateY: shutterTop }], backgroundColor: isLight ? '#8000FF' : '#FF6500' }]} />
+            <Animated.View style={[styles.shutterBar, { top: 0, transform: [{ translateY: shutterBottom }], backgroundColor: isLight ? '#8000FF' : '#FF6500' }]} />
           </>
         )}
 
         {/* 3. Fade Zoom (Clean) */}
         {activeMode === 'zoom' && (
-          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#050506', opacity: fadeZoom }]} />
+          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: isLight ? '#FFFFFF' : '#050506', opacity: fadeZoom }]} />
         )}
       </View>
     </TransitionContext.Provider>

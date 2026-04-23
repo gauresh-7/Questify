@@ -23,7 +23,9 @@ export default function TasksScreen() {
   const { navigateWithTransition } = useTransition();
 
   // Global State
-  const { currentXp, tasks, toggleTask, addTask } = useGameStore();
+  const { currentXp, tasks, toggleTask, addTask, theme } = useGameStore();
+  const isLight = theme === 'light';
+  const localStyles = getStyles(theme);
   
   // Local UI State
   const [taskName, setTaskName] = useState("");
@@ -42,8 +44,8 @@ export default function TasksScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#050506' }}>
-      <StatusBar style="light" />
+    <View style={{ flex: 1, backgroundColor: isLight ? '#FFFFFF' : '#050506' }}>
+      <StatusBar style={isLight ? "dark" : "light"} />
       
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : undefined} 
@@ -151,74 +153,81 @@ export default function TasksScreen() {
 
       {/* Navigation - Positioned outside KeyboardAvoidingView to keep it grounded */}
       <View style={localStyles.bottomNav}>
-        <Pressable onPress={() => {}}>
+        <Pressable onPress={() => navigateWithTransition("/settings", "zoom")}>
           <Image style={localStyles.navIcon} source={require('../assets/images/settings.png')} />
         </Pressable>
         <Pressable onPress={() => navigateWithTransition("/", "zoom")}>
           <Image style={[localStyles.navIcon, pathname === "/" && { tintColor: '#FF6500' }]} source={require('../assets/images/Home.png')} />
         </Pressable>
         <Pressable onPress={() => {}}>
-          <Image style={[localStyles.navIcon, pathname === "/tasks" && { tintColor: '#FF6500' }]} source={require('../assets/images/questIcon.png')} />
+          <Image style={[localStyles.navIcon, pathname === "/tasks" && { tintColor: isLight ? '#8000FF' : '#FF6500' }]} source={require('../assets/images/questIcon.png')} />
         </Pressable>
       </View>
     </View>
   );
 }
 
-const localStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#050506' },
-  headerWrapper: { paddingTop: Platform.OS === 'ios' ? 10 : 25 },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingTop: 20,
-    paddingHorizontal: 20, 
-    paddingBottom: 20,
-    borderBottomWidth: 1, 
-    borderBottomColor: 'rgba(255,255,255,0.1)' 
-  },
-  backButton: { marginRight: 20 },
-  backText: { color: 'rgba(255,255,255,0.4)', fontWeight: '900', fontSize: 12 },
-  screenTitle: { color: '#FFFFFF', fontSize: 18, fontWeight: '900', letterSpacing: 2 },
-  xpTotalText: { color: '#FF6500', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
-  scrollContent: { padding: 20, paddingBottom: 120 },
-  inputWrapper: { 
-    flexDirection: 'row', 
-    backgroundColor: 'rgba(255,255,255,0.05)', 
-    borderRadius: 12, 
-    borderWidth: 1, 
-    borderColor: 'rgba(255,255,255,0.1)', 
-    marginBottom: 15, 
-    paddingHorizontal: 12, 
-    alignItems: 'center',
-    height: 50
-  },
-  textInput: { flex: 1, color: '#FFF', fontWeight: '700', fontSize: 13, letterSpacing: 1 },
-  addButtonSmall: { backgroundColor: '#FF6500', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
-  addButtonTextSmall: { color: '#000', fontWeight: '900', fontSize: 10 },
-  difficultyRow: { flexDirection: 'row', gap: 10, marginBottom: 25 },
-  difficultyChip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: 'rgba(255,255,255,0.03)' },
-  difficultyChipActive: { borderColor: '#FF6500', backgroundColor: 'rgba(255, 101, 0, 0.2)' },
-  difficultyText: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
-  difficultyTextActive: { color: '#FF6500' },
-  taskCard: { backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: 20, padding: 20, marginBottom: 15, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
-  taskHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
-  taskTitle: { color: '#FFF', fontSize: 14, fontWeight: '800', letterSpacing: 1 },
-  xpRewardText: { color: 'rgba(255, 101, 0, 0.6)', fontSize: 9, fontWeight: '900', marginTop: 4 },
-  priorityBadge: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
-  priorityText: { color: 'rgba(255,255,255,0.5)', fontSize: 9, fontWeight: '900' },
-  progressBarContainer: { height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' },
-  progressBarFill: { height: '100%', backgroundColor: '#FF6500' },
-  bottomNav: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-around', 
-    alignItems: 'center', 
-    backgroundColor: '#050506', // Solid color stops the bleed
-    height: 80, 
-    width: '100%', 
-    borderTopWidth: 1, 
-    borderTopColor: 'rgba(255,255,255,0.08)', 
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0 
-  },
-  navIcon: { width: 22, height: 22, tintColor: 'rgba(255,255,255,0.4)' }
-});
+const getStyles = (theme: 'dark' | 'light') => {
+  const isLight = theme === 'light';
+  const primaryText = isLight ? '#000000' : '#FFFFFF';
+  const accent = isLight ? '#8000FF' : '#FF6500';
+  const bg = isLight ? '#FFFFFF' : '#050506';
+
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: bg },
+    headerWrapper: { paddingTop: Platform.OS === 'ios' ? 10 : 25 },
+    header: { 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      paddingTop: 20,
+      paddingHorizontal: 20, 
+      paddingBottom: 20,
+      borderBottomWidth: 1, 
+      borderBottomColor: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)' 
+    },
+    backButton: { marginRight: 20 },
+    backText: { color: isLight ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)', fontWeight: '900', fontSize: 12 },
+    screenTitle: { color: primaryText, fontSize: 18, fontWeight: '900', letterSpacing: 2 },
+    xpTotalText: { color: accent, fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+    scrollContent: { padding: 20, paddingBottom: 120 },
+    inputWrapper: { 
+      flexDirection: 'row', 
+      backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)', 
+      borderRadius: 12, 
+      borderWidth: 1, 
+      borderColor: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)', 
+      marginBottom: 15, 
+      paddingHorizontal: 12, 
+      alignItems: 'center',
+      height: 50
+    },
+    textInput: { flex: 1, color: primaryText, fontWeight: '700', fontSize: 13, letterSpacing: 1 },
+    addButtonSmall: { backgroundColor: accent, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
+    addButtonTextSmall: { color: isLight ? '#FFFFFF' : '#000000', fontWeight: '900', fontSize: 10 },
+    difficultyRow: { flexDirection: 'row', gap: 10, marginBottom: 25 },
+    difficultyChip: { borderWidth: 1, borderColor: isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)' },
+    difficultyChipActive: { borderColor: accent, backgroundColor: isLight ? 'rgba(128, 0, 255, 0.1)' : 'rgba(255, 101, 0, 0.2)' },
+    difficultyText: { color: isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
+    difficultyTextActive: { color: accent },
+    taskCard: { backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255, 255, 255, 0.03)', borderRadius: 20, padding: 20, marginBottom: 15, borderWidth: 1, borderColor: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255, 255, 255, 0.08)' },
+    taskHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
+    taskTitle: { color: primaryText, fontSize: 14, fontWeight: '800', letterSpacing: 1 },
+    xpRewardText: { color: isLight ? 'rgba(128, 0, 255, 0.6)' : 'rgba(255, 101, 0, 0.6)', fontSize: 9, fontWeight: '900', marginTop: 4 },
+    priorityBadge: { borderWidth: 1, borderColor: isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
+    priorityText: { color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', fontSize: 9, fontWeight: '900' },
+    progressBarContainer: { height: 4, backgroundColor: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' },
+    progressBarFill: { height: '100%', backgroundColor: accent },
+    bottomNav: { 
+      flexDirection: 'row', 
+      justifyContent: 'space-around', 
+      alignItems: 'center', 
+      backgroundColor: isLight ? '#F5F5F5' : '#050506', // Solid color stops the bleed
+      height: 80, 
+      width: '100%', 
+      borderTopWidth: 1, 
+      borderTopColor: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.08)', 
+      paddingBottom: Platform.OS === 'ios' ? 20 : 0 
+    },
+    navIcon: { width: 22, height: 22, tintColor: isLight ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)' }
+  });
+};

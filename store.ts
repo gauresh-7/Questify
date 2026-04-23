@@ -11,7 +11,15 @@ export interface Task {
   xpValue: number;
 }
 
+export type Theme = 'dark' | 'light';
+
+interface User {
+  username: string;
+}
+
 interface GameState {
+  user: User | null;
+  theme: Theme;
   currentXp: number;
   nextLevelXp: number;
   level: number;
@@ -19,6 +27,9 @@ interface GameState {
 }
 
 interface GameActions {
+  login: (username: string) => void;
+  logout: () => void;
+  toggleTheme: () => void;
   addXp: (amount: number) => void;
   removeXp: (amount: number) => void;
   toggleTask: (id: number) => void;
@@ -28,6 +39,8 @@ interface GameActions {
 type GameStore = GameState & GameActions;
 
 let state: GameState = {
+  user: null,
+  theme: 'dark',
   currentXp: 0,
   nextLevelXp: 1000,
   level: 1,
@@ -89,6 +102,21 @@ const DIFFICULTY_XP: Record<TaskDifficulty, number> = {
 };
 
 const actions: GameActions = {
+  login: (username) => {
+    state = { ...state, user: { username } };
+    emit();
+  },
+
+  logout: () => {
+    state = { ...state, user: null };
+    emit();
+  },
+
+  toggleTheme: () => {
+    state = { ...state, theme: state.theme === 'dark' ? 'light' : 'dark' };
+    emit();
+  },
+
   addXp: (amount) => {
     applyXpGain(amount);
     emit();

@@ -4,13 +4,17 @@ import { Image } from 'expo-image';
 import { useRouter } from "expo-router";
 // 1. Import the transition hook
 import { useTransition } from "./_layout"; 
+import { useGameStore } from "../store";
 
 const { width, height } = Dimensions.get('window');
 
 const UserDetails = () => {
     const router = useRouter();
-    // 2. Destructure the custom transition function
     const { navigateWithTransition } = useTransition();
+    const { user, level, currentXp, nextLevelXp, logout, theme } = useGameStore();
+
+    const isLight = theme === 'light';
+    const styles = getStyles(theme);
 
     return (
         <View style={styles.container}>
@@ -41,21 +45,31 @@ const UserDetails = () => {
             {/* 4. Glass Detail Rows */}
             <View style={styles.detailsContainer}>
                 {[
-                    { label: 'Name', value: 'xyz' },
+                    { label: 'Name', value: user?.username.toUpperCase() || 'UNKNOWN' },
                     { label: 'Class', value: 'Knight' },
-                    { label: 'Level', value: '12' },
-                    { label: 'Next Ascension', value: '8 Lvls' },
+                    { label: 'Level', value: level.toString() },
+                    { label: 'Next Ascension', value: `${nextLevelXp - currentXp} XP` },
                 ].map((item, index) => (
                     <View key={index} style={styles.glassDetailRow}>
                         <Text style={styles.label}>{item.label}</Text>
                         <Text style={styles.value}>{item.value}</Text>
                     </View>
                 ))}
+
+                <Pressable 
+                  style={styles.logoutButton}
+                  onPress={() => {
+                    logout();
+                    navigateWithTransition("/userAuth", "wipe");
+                  }}
+                >
+                  <Text style={styles.logoutText}>TERMINATE SESSION</Text>
+                </Pressable>
             </View>
             
             {/* 5. Frosted Bottom Nav */}
             <View style={styles.bottomNav}>
-                <Pressable onPress={() => {}}>
+                <Pressable onPress={() => navigateWithTransition("/settings", "zoom")}>
                     <Image style={styles.navIcon} source={require('../assets/images/settings.png')} />
                 </Pressable>
                 
@@ -65,142 +79,164 @@ const UserDetails = () => {
                 </Pressable>
                 
                 <Pressable onPress={() => {}}>
-                    <Image style={[styles.navIcon, { tintColor: '#FF6500' }]} source={require('../assets/images/userIcon.png')} />
+                    <Image style={[styles.navIcon, { tintColor: isLight ? '#8000FF' : '#FF6500' }]} source={require('../assets/images/userIcon.png')} />
                 </Pressable>
             </View>
         </View>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#070708', 
-        alignItems: 'center',
-        paddingTop: 80,
-    },
-    gridContainer: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        opacity: 0.05, 
-    },
-    gridLineH: {
-        position: 'absolute',
-        width: '100%',
-        height: 0.5, 
-        backgroundColor: 'rgba(255, 255, 255, 0.4)',
-    },
-    gridLineV: {
-        position: 'absolute',
-        height: '100%',
-        width: 0.5, 
-        backgroundColor: 'rgba(255, 255, 255, 0.4)',
-    },
-    glowSource: {
-        position: 'absolute',
-        bottom: 120,
-        left: -80,
-        width: 250,
-        height: 250,
-        borderRadius: 125,
-        backgroundColor: 'rgba(255, 101, 0, 0.15)', 
-        ...Platform.select({
-            ios: {
-                shadowColor: '#FF6500',
-                shadowOpacity: 0.8,
-                shadowRadius: 100,
-            },
-            android: {
-                elevation: 30, 
-            }
-        }),
-    },
-    headerContainer: {
-        width: '100%',
-        paddingHorizontal: 25,
-        marginBottom: 30,
-    },
-    heading: {
-        fontSize: 32,
-        color: '#FF6500', 
-        fontWeight: '900',
-        letterSpacing: -1,
-        textShadowColor: 'rgba(255, 101, 0, 0.6)',
-        textShadowOffset: { width: 0, height: 0 },
-        textShadowRadius: 15,
-    },
-    glassCard: {
-        width: width * 0.8,
-        height: width * 0.8,
-        backgroundColor: 'rgba(255, 255, 255, 0.02)',
-        borderRadius: 24,
-        padding: 1,
-        marginBottom: 40,
-        borderWidth: 1.5,
-        borderColor: 'rgba(255, 255, 255, 0.15)', 
-    },
-    avatarInner: {
-        flex: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.01)',
-        borderRadius: 23,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    placeholderText: {
-        color: 'rgba(255, 255, 255, 0.15)',
-        fontWeight: '700',
-        fontSize: 10,
-        letterSpacing: 4,
-    },
-    detailsContainer: {
-        width: '100%',
-        paddingHorizontal: 25,
-        gap: 12,
-    },
-    glassDetailRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.04)',
-        paddingVertical: 18,
-        paddingHorizontal: 20,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.08)',
-    },
-    label: {
-        color: 'rgba(255, 255, 255, 0.35)',
-        fontSize: 11,
-        fontWeight: '800',
-        textTransform: 'uppercase',
-        letterSpacing: 1,
-    },
-    value: {
-        color: '#FFFFFF',
-        fontSize: 17,
-        fontWeight: '600',
-    },
-    bottomNav: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        backgroundColor: 'rgba(7, 7, 8, 0.92)',
-        height: 90,
-        position: 'absolute',
-        bottom: 0,
-        width: '100%',
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(255, 255, 255, 0.1)',
-        paddingBottom: 20,
-    },
-    navIcon: {
-        width: 24,
-        height: 24,
-        tintColor: 'rgba(255, 255, 255, 0.3)',
-    },
-});
+const getStyles = (theme: 'dark' | 'light') => {
+    const isLight = theme === 'light';
+    const primaryText = isLight ? '#000000' : '#FFFFFF';
+    const accent = isLight ? '#8000FF' : '#FF6500';
+    const bg = isLight ? '#FFFFFF' : '#070708';
+
+    return StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: bg, 
+            alignItems: 'center',
+            paddingTop: 80,
+        },
+        gridContainer: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            opacity: isLight ? 0.08 : 0.05, 
+        },
+        gridLineH: {
+            position: 'absolute',
+            width: '100%',
+            height: 0.5, 
+            backgroundColor: isLight ? '#000000' : 'rgba(255, 255, 255, 0.4)',
+        },
+        gridLineV: {
+            position: 'absolute',
+            height: '100%',
+            width: 0.5, 
+            backgroundColor: isLight ? '#000000' : 'rgba(255, 255, 255, 0.4)',
+        },
+        glowSource: {
+            position: 'absolute',
+            bottom: 120,
+            left: -80,
+            width: 250,
+            height: 250,
+            borderRadius: 125,
+            backgroundColor: isLight ? 'rgba(128, 0, 255, 0.15)' : 'rgba(255, 101, 0, 0.15)', 
+            ...Platform.select({
+                ios: {
+                    shadowColor: accent,
+                    shadowOpacity: 0.8,
+                    shadowRadius: 100,
+                },
+                android: {
+                    elevation: 30, 
+                }
+            }),
+        },
+        headerContainer: {
+            width: '100%',
+            paddingHorizontal: 25,
+            marginBottom: 30,
+        },
+        heading: {
+            fontSize: 32,
+            color: accent, 
+            fontWeight: '900',
+            letterSpacing: -1,
+            textShadowColor: isLight ? 'rgba(128, 0, 255, 0.6)' : 'rgba(255, 101, 0, 0.6)',
+            textShadowOffset: { width: 0, height: 0 },
+            textShadowRadius: 15,
+        },
+        glassCard: {
+            width: width * 0.8,
+            height: width * 0.8,
+            backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255, 255, 255, 0.02)',
+            borderRadius: 24,
+            padding: 1,
+            marginBottom: 40,
+            borderWidth: 1.5,
+            borderColor: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255, 255, 255, 0.15)', 
+        },
+        avatarInner: {
+            flex: 1,
+            backgroundColor: isLight ? 'rgba(0,0,0,0.01)' : 'rgba(255, 255, 255, 0.01)',
+            borderRadius: 23,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        placeholderText: {
+            color: isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255, 255, 255, 0.15)',
+            fontWeight: '700',
+            fontSize: 10,
+            letterSpacing: 4,
+        },
+        detailsContainer: {
+            width: '100%',
+            paddingHorizontal: 25,
+            gap: 12,
+        },
+        glassDetailRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255, 255, 255, 0.04)',
+            paddingVertical: 18,
+            paddingHorizontal: 20,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255, 255, 255, 0.08)',
+        },
+        label: {
+            color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255, 255, 255, 0.35)',
+            fontSize: 11,
+            fontWeight: '800',
+            textTransform: 'uppercase',
+            letterSpacing: 1,
+        },
+        value: {
+            color: primaryText,
+            fontSize: 17,
+            fontWeight: '600',
+        },
+        bottomNav: {
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            backgroundColor: isLight ? '#F5F5F5' : 'rgba(7, 7, 8, 0.92)',
+            height: 90,
+            position: 'absolute',
+            bottom: 0,
+            width: '100%',
+            borderTopWidth: 1,
+            borderTopColor: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255, 255, 255, 0.1)',
+            paddingBottom: 20,
+        },
+        navIcon: {
+            width: 24,
+            height: 24,
+            tintColor: isLight ? 'rgba(0,0,0,0.4)' : 'rgba(255, 255, 255, 0.3)',
+        },
+        logoutButton: {
+            marginTop: 20,
+            backgroundColor: isLight ? 'rgba(128, 0, 255, 0.1)' : 'rgba(255, 101, 0, 0.1)',
+            borderWidth: 1,
+            borderColor: isLight ? 'rgba(128, 0, 255, 0.5)' : 'rgba(255, 101, 0, 0.5)',
+            paddingVertical: 16,
+            borderRadius: 16,
+            alignItems: 'center',
+        },
+        logoutText: {
+            color: accent,
+            fontSize: 12,
+            fontWeight: '800',
+            letterSpacing: 2,
+        },
+    });
+};
 
 export default UserDetails;

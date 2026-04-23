@@ -2,13 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, Dimensions, Keyboard, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
+import { useGameStore } from '../store';
  
 const { width } = Dimensions.get('window');
  
-// ─── PUT YOUR AUDIO URL HERE ──────────────────────────────────────────────────
-// Option 1: Upload lofi.wav to any static host (Cloudinary, S3, GitHub raw, etc.)
-//           and paste the direct URL below.
-// Option 2: Use a royalty-free lofi stream, e.g. from Pixabay or similar.
+
 const AUDIO_URI = 'https://YOUR_HOST/lofi.wav';
 // ─────────────────────────────────────────────────────────────────────────────
  
@@ -18,6 +16,10 @@ const TimerApp = () => {
   const [isActive, setIsActive] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const soundRef = useRef<Audio.Sound | null>(null);
+
+  const { theme } = useGameStore();
+  const isLight = theme === 'light';
+  const localStyles = getStyles(theme);
  
   // 1. Initial Sound Setup — loaded from URI, never touches the bundler
   useEffect(() => {
@@ -91,46 +93,46 @@ const TimerApp = () => {
   };
  
   return (
-    <View style={styles.container}>
-      <View style={[styles.bgGlow, { opacity: isActive ? 0.3 : 0.1, top: 100, left: -50 }]} />
-      <View style={[styles.bgGlow, { opacity: isActive ? 0.2 : 0.05, bottom: 50, right: -100, backgroundColor: '#FF2D00' }]} />
+    <View style={localStyles.container}>
+      <View style={[localStyles.bgGlow, { opacity: isActive ? 0.3 : 0.1, top: 100, left: -50 }]} />
+      <View style={[localStyles.bgGlow, { opacity: isActive ? 0.2 : 0.05, bottom: 50, right: -100, backgroundColor: isLight ? '#BF80FF' : '#FF2D00' }]} />
  
-      <View style={styles.glassCard}>
-        <LinearGradient colors={['rgba(255,255,255,0.12)', 'transparent']} style={styles.specularHighlight} />
+      <View style={localStyles.glassCard}>
+        <LinearGradient colors={isLight ? ['rgba(0,0,0,0.06)', 'transparent'] : ['rgba(255,255,255,0.12)', 'transparent']} style={localStyles.specularHighlight} />
  
-        <Text style={styles.label}>FOCUS SESSION</Text>
+        <Text style={localStyles.label}>FOCUS SESSION</Text>
  
-        <View style={styles.timerOuterRing}>
+        <View style={localStyles.timerOuterRing}>
           <LinearGradient
-            colors={isActive ? ['#FF6500', '#FF2D00'] : ['#333', '#111']}
-            style={styles.timerCircle}
+            colors={isActive ? (isLight ? ['#8000FF', '#BF80FF'] : ['#FF6500', '#FF2D00']) : (isLight ? ['#E0E0E0', '#CCCCCC'] : ['#333', '#111'])}
+            style={localStyles.timerCircle}
           >
-            <View style={styles.innerCore}>
-              <View style={styles.artifactReflection} />
-              <Text style={[styles.timerText, isActive && styles.glowText]}>
+            <View style={localStyles.innerCore}>
+              <View style={localStyles.artifactReflection} />
+              <Text style={[localStyles.timerText, isActive && localStyles.glowText]}>
                 {formatTime()}
               </Text>
             </View>
           </LinearGradient>
         </View>
  
-        <View style={styles.inputContainer}>
+        <View style={localStyles.inputContainer}>
           <TextInput
-            style={[styles.input, isActive && { opacity: 0.5 }]}
+            style={[localStyles.input, isActive && { opacity: 0.5 }]}
             keyboardType="number-pad"
             value={minutes}
             onChangeText={handleInputChange}
             placeholder="00"
-            placeholderTextColor="#333"
+            placeholderTextColor={isLight ? "#999" : "#333"}
             editable={!isActive}
           />
-          <Text style={styles.inputLabel}>MINUTES</Text>
+          <Text style={localStyles.inputLabel}>MINUTES</Text>
         </View>
  
-        <View style={styles.buttonRow}>
+        <View style={localStyles.buttonRow}>
           <Pressable
             style={({ pressed }) => [
-              styles.mainButton,
+              localStyles.mainButton,
               pressed && { transform: [{ scale: 0.97 }] }
             ]}
             onPress={() => {
@@ -139,15 +141,15 @@ const TimerApp = () => {
             }}
           >
             {isActive ? (
-              <View style={styles.buttonHalt}>
-                <Text style={styles.buttonText}>HALT</Text>
+              <View style={localStyles.buttonHalt}>
+                <Text style={localStyles.buttonTextHalt}>HALT</Text>
               </View>
             ) : (
               <LinearGradient
-                colors={['#FF8533', '#FF6500']}
-                style={styles.buttonGradient}
+                colors={isLight ? ['#A64DFF', '#8000FF'] : ['#FF8533', '#FF6500']}
+                style={localStyles.buttonGradient}
               >
-                <Text style={styles.buttonText}>IGNITE</Text>
+                <Text style={localStyles.buttonText}>IGNITE</Text>
               </LinearGradient>
             )}
           </Pressable>
@@ -159,7 +161,7 @@ const TimerApp = () => {
               soundRef.current?.stopAsync().catch(() => {});
             }}
           >
-            <Text style={styles.resetText}>RESET SYSTEM</Text>
+            <Text style={localStyles.resetText}>RESET SYSTEM</Text>
           </Pressable>
         </View>
       </View>
@@ -167,27 +169,35 @@ const TimerApp = () => {
   );
 };
  
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#050505', justifyContent: 'center', alignItems: 'center' },
-  bgGlow: { position: 'absolute', width: width, height: width, borderRadius: width / 2, backgroundColor: '#FF6500' },
-  glassCard: { width: width * 0.9, paddingVertical: 50, borderRadius: 40, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.15)', alignItems: 'center', backgroundColor: 'rgba(25, 25, 28, 0.85)', overflow: 'hidden' },
-  specularHighlight: { position: 'absolute', top: 0, left: 0, right: 0, height: '50%' },
-  label: { color: '#FF6500', fontSize: 10, letterSpacing: 6, fontWeight: '900', marginBottom: 40 },
-  timerOuterRing: { padding: 10, borderRadius: 120, backgroundColor: 'rgba(255, 255, 255, 0.04)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', marginBottom: 40 },
-  timerCircle: { width: 210, height: 210, borderRadius: 105, padding: 2 },
-  innerCore: { flex: 1, borderRadius: 105, backgroundColor: '#0a0a0c', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
-  artifactReflection: { position: 'absolute', top: '10%', left: '20%', width: '60%', height: '20%', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 50, transform: [{ rotate: '-15deg' }] },
-  timerText: { color: '#FFFFFF', fontSize: 54, fontWeight: '200', ...Platform.select({ ios: { fontFamily: 'Courier' }, android: { fontFamily: 'monospace' } }) },
-  glowText: { textShadowColor: 'rgba(255, 101, 0, 0.8)', textShadowRadius: 12 },
-  inputContainer: { alignItems: 'center', marginBottom: 40 },
-  input: { color: '#FFFFFF', fontSize: 32, fontWeight: '800', width: 120, textAlign: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255, 101, 0, 0.5)' },
-  inputLabel: { color: '#FF6500', fontSize: 9, letterSpacing: 2, marginTop: 10, fontWeight: '700', opacity: 0.6 },
-  buttonRow: { width: '100%', alignItems: 'center', gap: 20 },
-  mainButton: { width: '75%', height: 58, borderRadius: 16, overflow: 'hidden' },
-  buttonGradient: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  buttonHalt: { flex: 1, borderWidth: 1.5, borderColor: '#FF6500', justifyContent: 'center', alignItems: 'center', borderRadius: 16 },
-  buttonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '900', letterSpacing: 4 },
-  resetText: { color: '#444', fontSize: 10, fontWeight: '800', letterSpacing: 2, padding: 10 }
-});
+const getStyles = (theme: 'dark' | 'light') => {
+  const isLight = theme === 'light';
+  const primaryText = isLight ? '#000000' : '#FFFFFF';
+  const accent = isLight ? '#8000FF' : '#FF6500';
+  const bg = isLight ? '#FFFFFF' : '#050505';
+
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: bg, justifyContent: 'center', alignItems: 'center' },
+    bgGlow: { position: 'absolute', width: width, height: width, borderRadius: width / 2, backgroundColor: accent },
+    glassCard: { width: width * 0.9, paddingVertical: 50, borderRadius: 40, borderWidth: 1, borderColor: isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.15)', alignItems: 'center', backgroundColor: isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(25, 25, 28, 0.85)', overflow: 'hidden' },
+    specularHighlight: { position: 'absolute', top: 0, left: 0, right: 0, height: '50%' },
+    label: { color: accent, fontSize: 10, letterSpacing: 6, fontWeight: '900', marginBottom: 40 },
+    timerOuterRing: { padding: 10, borderRadius: 120, backgroundColor: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.04)', borderWidth: 1, borderColor: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)', marginBottom: 40 },
+    timerCircle: { width: 210, height: 210, borderRadius: 105, padding: 2 },
+    innerCore: { flex: 1, borderRadius: 105, backgroundColor: isLight ? '#FAFAFA' : '#0a0a0c', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+    artifactReflection: { position: 'absolute', top: '10%', left: '20%', width: '60%', height: '20%', backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)', borderRadius: 50, transform: [{ rotate: '-15deg' }] },
+    timerText: { color: primaryText, fontSize: 54, fontWeight: '200', ...Platform.select({ ios: { fontFamily: 'Courier' }, android: { fontFamily: 'monospace' } }) },
+    glowText: { textShadowColor: isLight ? 'rgba(128, 0, 255, 0.5)' : 'rgba(255, 101, 0, 0.8)', textShadowRadius: 12 },
+    inputContainer: { alignItems: 'center', marginBottom: 40 },
+    input: { color: primaryText, fontSize: 32, fontWeight: '800', width: 120, textAlign: 'center', borderBottomWidth: 1, borderBottomColor: isLight ? 'rgba(128, 0, 255, 0.5)' : 'rgba(255, 101, 0, 0.5)' },
+    inputLabel: { color: accent, fontSize: 9, letterSpacing: 2, marginTop: 10, fontWeight: '700', opacity: 0.6 },
+    buttonRow: { width: '100%', alignItems: 'center', gap: 20 },
+    mainButton: { width: '75%', height: 58, borderRadius: 16, overflow: 'hidden' },
+    buttonGradient: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    buttonHalt: { flex: 1, borderWidth: 1.5, borderColor: accent, justifyContent: 'center', alignItems: 'center', borderRadius: 16 },
+    buttonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '900', letterSpacing: 4 },
+    buttonTextHalt: { color: accent, fontSize: 13, fontWeight: '900', letterSpacing: 4 },
+    resetText: { color: isLight ? '#888' : '#444', fontSize: 10, fontWeight: '800', letterSpacing: 2, padding: 10 }
+  });
+};
  
 export default TimerApp;
